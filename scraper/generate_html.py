@@ -25,6 +25,8 @@ def generate_html(path):
                     p.date {{ color: #777; font-size: 0.9rem; }}
                     ol {{ padding-left: 1.2rem; }}
                     li {{ margin: 1rem 0; }}
+                    a {{ text-decoration: none; color: #0066cc; }}
+                    a:hover {{ text-decoration: underline; }}
                     footer {{ margin-top: 3rem; color: #aaa; font-size: 0.8rem; }}
                 </style>
             </head>
@@ -37,9 +39,9 @@ def generate_html(path):
             # <ol>：順序付きリスト（自動で「1.」「2.」と番号が付きます）
 
     # 各ニュース見出しを <li> タグとして追加
-    for headline in headlines:
-        clean_headline = remove_leading_number(headline) # remove_leading_number(...)：番号を削除
-        html += f"        <li>{clean_headline}</li>\n"
+    for title, url in headlines:
+        clean_headline = remove_leading_number(title) # remove_leading_number(...)：番号を削除
+        html += f'        <li><a href="{url}" target="_blank" rel="noopener">{clean_headline}</a></li>\n'
         # <li>...</li>：1件ずつリストとしてHTMLに追加
 
     # HTMLの末尾を閉じる

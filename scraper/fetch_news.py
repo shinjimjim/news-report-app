@@ -19,9 +19,12 @@ def get_headlines(): # この関数は、Yahoo!ニュースのトップページ
         href = a['href'] # href：リンク先URL（文字列）。
         text = a.get_text(strip=True) # text：リンクの中にあるテキストを抽出し、前後の空白も除去。
 
-        # 条件に合うものだけ見出しとして採用
+        # Yahooニュース記事らしいリンクのみ取得
         if '/articles/' in href and text and len(text) > 10: # '/articles/' in href：Yahooニュースの個別記事のURLに /articles/ が含まれているため、ニュース記事リンクだけを抽出。text が空でなく、len(text) > 10：短すぎるリンクやナビゲーションメニューを除外する目的。
-            headlines.append(text)
+            #絶対URLの整備
+            full_url = href if href.startswith('http') else f"https://news.yahoo.co.jp{href}" # href が http で始まっていれば絶対URL。そうでなければ（例：/articles/abc123.html のような相対パスの場合）、先頭にドメインを追加して完全なURLにする。
+            # 見出しとURLをセットで追加
+            headlines.append((text, full_url)) # headlines リストに (見出し, URL) の形で追加。tuple（タプル）形式で。
 
         # 上限5件に達したら終了
         if len(headlines) >= 5:
