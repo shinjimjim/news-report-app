@@ -5,8 +5,8 @@ import re # re: 正規表現（文字列処理）を行うPython標準ライブ�
 
 # 番号付きテキストから番号を除去する（"1○○" → "○○"）
 def remove_leading_number(text):
-    if isinstance(text, str) and text[:1].isdigit():
-        return text[1:]
+    if isinstance(text, str) and text[:1].isdigit(): # isdigit() で先頭文字が数字かどうか確認。
+        return text[1:] # text[1:] でその1文字目を取り除いた文字列を返す。
     return text
 
 # HTML出力関数
@@ -23,24 +23,56 @@ def generate_html(main_path, archive_path): # この関数では、HTMLレポー
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>今日のニュース（トップ5）</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今日のニュース（{date_str}）</title>
     <style>
-        body {{ font-family: sans-serif; padding: 2rem; max-width: 800px; margin: auto; }}
-        h1 {{ font-size: 1.8rem; color: #333; }}
-        p.date {{ color: #777; font-size: 0.9rem; }}
-        ol {{ padding-left: 1.2rem; }}
-        li {{ margin: 1rem 0; }}
-        a {{ text-decoration: none; color: #0066cc; }}
-        a:hover {{ text-decoration: underline; }}
-        footer {{ margin-top: 3rem; color: #aaa; font-size: 0.8rem; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+            margin: 0;
+            padding: 1.5rem;
+            max-width: 768px;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: #f9f9f9;
+            color: #333;
+        }}
+        h1 {{
+            font-size: 1.6rem;
+            margin-bottom: 0.5rem;
+        }}
+        .date {{
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 1.5rem;
+        }}
+        ol {{
+            padding-left: 1.2rem;
+        }}
+        li {{
+            margin: 1rem 0;
+            line-height: 1.5;
+        }}
+        a {{
+            text-decoration: none;
+            color: #007acc;
+        }}
+        a:hover {{
+            text-decoration: underline;
+        }}
+        footer {{
+            margin-top: 3rem;
+            font-size: 0.8rem;
+            color: #999;
+            text-align: center;
+        }}
     </style>
 </head>
 <body>
     <h1>📰 今日の主要ニュース（{date_str}）</h1>
     <p class="date">発行日時：{now_str}</p>
-    <ol>
+    <ol> 
 """
-# f"""...{now}..."""：f文字列で、現在の日時をHTMLに埋め込みます。
+# モバイル対応（<meta name="viewport">あり）
 # <ol>：順序付きリスト（自動で「1.」「2.」と番号が付きます）
 
     # 各ニュース見出しを <li> タグとしてHTMLリストに追加
@@ -72,7 +104,7 @@ if __name__ == "__main__": # __name__ == "__main__"：このファイルが直�
     history_dir = os.path.join(public_dir, "history") # history: 日付ごとに履歴を残すためのサブフォルダ
 
     today_str = datetime.now().strftime('%Y-%m-%d')
-    latest_path = os.path.join(public_dir, "news_report.html")
-    archive_path = os.path.join(history_dir, f"news_{today_str}.html")
+    latest_path = os.path.join(public_dir, "news_report.html") # latest_path: 上書きされる最新版HTML
+    archive_path = os.path.join(history_dir, f"news_{today_str}.html") # archive_path: 毎日別名で保存される履歴HTML
 
     generate_html(latest_path, archive_path)
