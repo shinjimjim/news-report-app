@@ -50,13 +50,15 @@ def generate_pdf(path):
     headlines = get_headlines()[:5]  # fetch_news.py の get_headlines() 関数から最大5件の見出しを取得。
     c.setFont(font_name, font_size)
 
-    # 正規表現でクリーニング関数を定義
+    # 1文字目が数字なら削除
     def clean_headline(text):
-        return re.sub(r'^\d+[\.、．]?\s*', '', text) # 行頭の番号や句点、記号を除去
+        if isinstance(text, str) and text[:1].isdigit():
+            return text[1:]
+        return text
 
     # 各見出しをループで処理
-    for i, headline in enumerate(headlines, 1): # i は見出し番号（1〜5）
-        headline = clean_headline(headline)
+    for i, (headline_text, _) in enumerate(headlines[:5], 1): # i は見出し番号（1〜5）
+        headline = clean_headline(headline_text)
         # 番号付き見出しをラップ処理
         wrapped_text = force_wrap(headline, width=45)
         lines = wrapped_text.split('\n')
