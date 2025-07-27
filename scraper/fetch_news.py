@@ -7,6 +7,7 @@ from news_sources.jiji import get_jiji_headlines
 from news_sources.itmedia import get_itmedia_headlines
 from news_sources.toyokeizai import get_toyokeizai_headlines
 from news_sources.diamond import get_diamond_headlines
+from news_sources.abema import get_abema_headlines
 
 def get_all_headlines():
     return [
@@ -15,5 +16,6 @@ def get_all_headlines():
         ("時事通信", get_jiji_headlines()),
         ("ITmedia", get_itmedia_headlines()),
         ("東洋経済オンライン", get_toyokeizai_headlines()),
-        ("ダイヤモンド・オンライン", get_diamond_headlines())
+        ("ダイヤモンド・オンライン", get_diamond_headlines()),
+        ("ABEMA TIMES", get_abema_headlines())
     ]
