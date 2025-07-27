@@ -1,7 +1,7 @@
 from datetime import datetime # datetime: 現在の日時を取得・整形するために使います（発行日時の表示用）。
 import os # os: ファイルパスを動的に生成するために使います。
-from fetch_news import get_headlines
 import re # re: 正規表現（文字列処理）を行うPython標準ライブラリです。
+from fetch_news import get_all_headlines
 
 # 番号付きテキストから番号を除去する（"1○○" → "○○"）
 def remove_leading_number(text):
@@ -12,7 +12,7 @@ def remove_leading_number(text):
 # HTML出力関数
 def generate_html(main_path, archive_path): # この関数では、HTMLレポートを2か所に保存します：main_path: 最新のニュース用（例：public/news_report.html）archive_path: 履歴保存用（例：public/history/news_2025-07-27.html）
     # 見出しと日時の取得
-    headlines = get_headlines()[:5] # [:5]: 先頭5件だけを使います（トップ5）
+    all_news = get_all_headlines()  # [(source_name, [(title, url), ...]), ...]
     # 日付・時刻の取得とフォーマット
     now = datetime.now()
     now_str = now.strftime('%Y/%m/%d %H:%M') # now_str: HTMLに表示する発行日時（人間向け）
@@ -69,24 +69,24 @@ def generate_html(main_path, archive_path): # この関数では、HTMLレポー
 </head>
 <body>
     <h1>📰 今日の主要ニュース（{date_str}）</h1>
-    <p class="date">発行日時：{now_str}</p>
-    <ol> 
+    <p class="date">発行日時：{now_str}</p> 
 """
 # モバイル対応（<meta name="viewport">あり）
 # <ol>：順序付きリスト（自動で「1.」「2.」と番号が付きます）
 
     # 各ニュース見出しを <li> タグとしてHTMLリストに追加
-    for title, url in headlines:
-        clean_headline = remove_leading_number(title) # remove_leading_number(...)：番号を削除
-        html += f'        <li><a href="{url}" target="_blank" rel="noopener">{clean_headline}</a></li>\n'
-        # <li>...</li>：1件ずつリストとしてHTMLに追加
+    for source_name, headlines in all_news:
+        html += f"<h2>{source_name}</h2>\n<ol>\n"
+        for title, url in headlines:
+            clean_title = remove_leading_number(title) # remove_leading_number(...)：番号を削除
+            html += f'  <li><a href="{url}" target="_blank" rel="noopener">{clean_title}</a></li>\n'
+        html += "</ol>\n"
 
-    # HTMLの末尾を閉じる
-    html += """    </ol>
-    <footer>提供：まいにゅ〜</footer>
+    # # HTMLの末尾を閉じる
+    html += """    <footer>提供：まいにゅ〜</footer>
 </body>
 </html>"""
-    
+
     # HTMLファイルに書き込む
     for path in [main_path, archive_path]:
         os.makedirs(os.path.dirname(path), exist_ok=True) # os.makedirs(...): ディレクトリが存在しない場合は自動作成（history/など）
