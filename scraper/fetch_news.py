@@ -9,6 +9,7 @@ from news_sources.diamond import get_diamond_headlines
 from news_sources.abema import get_abema_headlines
 from news_sources.sponichi import get_sponichi_headlines
 from news_sources.internet_watch import get_internet_watch_headlines
+from news_sources.bbc import get_bbc_headlines
 
 def get_all_headlines():
     return [
@@ -19,5 +20,6 @@ def get_all_headlines():
         ("ダイヤモンド・オンライン", get_diamond_headlines()),
         ("ABEMA TIMES", get_abema_headlines()),
         ("Sponichi Annex", get_sponichi_headlines()),
-        ("INTERNET Watch", get_internet_watch_headlines())
+        ("INTERNET Watch", get_internet_watch_headlines()),
+        ("BBCニュース", get_bbc_headlines())
     ]
