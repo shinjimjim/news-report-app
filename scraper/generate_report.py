@@ -38,7 +38,7 @@ def generate_pdf(path):
     def draw_header():
         nonlocal y # nonlocal y は、外の変数 y をこの関数内でも更新可能にします。
         c.setFont(font_name, 16)
-        c.drawString(margin, y, "今日の主要ニュース（各社5件）")
+        c.drawString(margin, y, "今日の主要ニュース")
         y -= 24
         c.setFont(font_name, font_size)
         c.drawString(margin, y, f"発行日: {datetime.now().strftime('%Y/%m/%d %H:%M')}") # ヘッダーにはタイトルと日付を描画します。
