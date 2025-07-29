@@ -1,7 +1,7 @@
 from datetime import datetime # datetime: 現在の日時を取得・整形するために使います（発行日時の表示用）。
 import os # os: ファイルパスを動的に生成するために使います。
 import re # re: 正規表現（文字列処理）を行うPython標準ライブラリです。
-from fetch_news import get_all_headlines
+from scraper.fetch_news import get_all_headlines
 
 # 番号付きテキストから番号を除去する（"1○○" → "○○"）
 def remove_leading_number(text):

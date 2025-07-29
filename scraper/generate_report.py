@@ -7,7 +7,7 @@ from datetime import datetime # datetime：発行日時を現在時刻で取得
 import os # os：ファイルパス操作用（OSに依存しないパスを作る）
 import textwrap # textwrap：長い文章を指定幅で自動改行するためのツール
 import re # re：正規表現によるテキスト前処理
-from fetch_news import get_all_headlines
+from scraper.fetch_news import get_all_headlines
 
 # 日本語フォント登録
 font_name = 'IPAexGothic' # IPAexGothic：日本語対応の無料フォント。
