@@ -25,51 +25,61 @@ def generate_html(main_path, archive_path): # この関数では、HTMLレポー
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>今日のニュース（{date_str}）</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+            font-family: 'Noto Sans JP', sans-serif;
             margin: 0;
-            padding: 1.5rem;
-            max-width: 768px;
-            margin-left: auto;
-            margin-right: auto;
-            background-color: #f9f9f9;
+            padding: 2rem 1rem;
+            background-color: #f0f2f5;
             color: #333;
         }}
+        .container {{
+            max-width: 720px;
+            margin: auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }}
         h1 {{
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             margin-bottom: 0.5rem;
+            color: #111;
         }}
         .date {{
             font-size: 0.9rem;
-            color: #777;
+            color: #888;
             margin-bottom: 1.5rem;
         }}
         ol {{
             padding-left: 1.2rem;
         }}
         li {{
-            margin: 1rem 0;
-            line-height: 1.5;
+            margin-bottom: 1rem;
+            line-height: 1.6;
         }}
         a {{
-            text-decoration: none;
             color: #007acc;
+            text-decoration: none;
+            font-weight: bold;
         }}
         a:hover {{
             text-decoration: underline;
         }}
         footer {{
             margin-top: 3rem;
-            font-size: 0.8rem;
-            color: #999;
+            font-size: 0.85rem;
             text-align: center;
+            color: #aaa;
         }}
     </style>
 </head>
 <body>
-    <h1>📰 今日の主要ニュース（{date_str}）</h1>
-    <p class="date">発行日時：{now_str}</p> 
+    <div class="container">
+        <h1>📰 今日の主要ニュース（{date_str}）</h1>
+        <p class="date">発行日時：{now_str}</p>
+        <ol>
 """
 # モバイル対応（<meta name="viewport">あり）
 # <ol>：順序付きリスト（自動で「1.」「2.」と番号が付きます）
