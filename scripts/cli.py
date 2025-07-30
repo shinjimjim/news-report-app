@@ -12,18 +12,22 @@ def main():
 
     if args.command == "run":
         # パスの準備
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) # __file__ はこのファイル（cli.py）のパス。dirname(__file__) でディレクトリ（scripts/）を取得。.. で親ディレクトリ（news-report-app/）へ移動。abspath(...) で絶対パスに変換
+        # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) # __file__ はこのファイル（cli.py）のパス。dirname(__file__) でディレクトリ（scripts/）を取得。.. で親ディレクトリ（news-report-app/）へ移動。abspath(...) で絶対パスに変換
+        script_dir = os.path.dirname(__file__)
+        report_dir = os.path.abspath(os.path.join(script_dir, "../../news-report"))
+        history_dir = os.path.join(report_dir, "history")
+
         # 出力先のファイルパス定義
-        public_dir = os.path.join(project_root, "public")
-        history_dir = os.path.join(public_dir, "history")
-
+        # public_dir = os.path.join(project_root, "public")
+        # history_dir = os.path.join(public_dir, "history")
+        # latest_html = os.path.join(public_dir, "news_report.html")
+        # pdf_path = os.path.join(public_dir, "news_report.pdf")
+        # index_path = os.path.join(history_dir, "index.html")
         today_str = datetime.now().strftime('%Y-%m-%d')
-        latest_html = os.path.join(public_dir, "news_report.html")
+        latest_html = os.path.join(report_dir, "news_report.html")
         archive_html = os.path.join(history_dir, f"news_{today_str}.html")
-
-        pdf_path = os.path.join(public_dir, "news_report.pdf")
-
-        index_path = os.path.join(history_dir, "index.html")
+        pdf_path = os.path.join(report_dir, "news_report.pdf")
+        index_path = os.path.join(report_dir, "index.html")
 
         # HTML・PDF・index.html の順に生成
         print("📄 HTML生成中...")
