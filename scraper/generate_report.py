@@ -4,6 +4,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont # pdfmetrics, TTFont：日本語フォントをPDFで使えるように登録
 from reportlab.lib.pagesizes import A4 # A4：用紙サイズ（A4）を指定
 from datetime import datetime # datetime：発行日時を現在時刻で取得
+from reportlab.lib.colors import blue
 import os # os：ファイルパス操作用（OSに依存しないパスを作る）
 import textwrap # textwrap：長い文章を指定幅で自動改行するためのツール
 import re # re：正規表現によるテキスト前処理
@@ -71,14 +72,15 @@ def generate_pdf(path):
         c.setFont(font_name, font_size)
 
         # 各ニュース記事（最大5件）のループ
-        for i, (headline_text, _) in enumerate(headlines[:5], 1): # 各ソースから最大5件まで取得。headline_text はニュースのタイトル文字列、_ はURL（使っていない）。
+        for i, (headline_text, url) in enumerate(headlines[:5], 1): # 各ソースから最大5件まで取得。headline_text はニュースのタイトル文字列、url はURL。
             # 見出し整形・改行処理
             headline = clean_headline(headline_text) # clean_headline() で先頭番号を削除（例：1記事タイトル → 記事タイトル）。
             lines = force_wrap(headline, width=45).split('\n') # force_wrap() で45文字ごとに強制改行 → 複数行に。
             required_height = line_height * (len(lines) + 1) + 6 # required_height はこの見出しの描画に必要な縦スペース：本文行数 × 行高（18pt）＋ 番号行1行分 ＋ 余白（6pt）
 
             # 改ページチェック（個別見出しごと）
-            if y - required_height < 60: # この見出しを描くのに十分なスペースがないとき → 改ページ。ページが変わっても、同じニュースソースが続いていることがわかるように、【Yahooニュース（続き）】 と表示する工夫。
+            # この見出しを描くのに十分なスペースがないとき → 改ページ。ページが変わっても、同じニュースソースが続いていることがわかるように、【Yahooニュース（続き）】 と表示する工夫。
+            if y - required_height < 60:
                 draw_footer()
                 c.showPage()
                 y = height - margin
@@ -91,11 +93,35 @@ def generate_pdf(path):
             # 番号付き見出しの描画
             c.drawString(margin, y, f"{i}.") # 見出し番号（1., 2. など）を描画。
 
-            # 本文行の描画（折り返し済み）
+            # 本文行の描画
             for line in lines:
-                c.drawString(margin + 20, y, line) # 各改行済みの行をインデント（20pt）付きで描画。
+                text_x = margin + 20
+                text_y = y
+
+                # リンクっぽい青い文字で描画
+                c.setFillColor(blue)
+                c.drawString(text_x, text_y, line) # 各改行済みの行をインデント（20pt）付きで描画。
+
+                # 下線を引く（細い青線）
+                text_width = pdfmetrics.stringWidth(line, font_name, font_size) # テキスト幅の測定
+                c.setStrokeColor(blue)
+                c.setLineWidth(0.5)
+                c.line(text_x, text_y - 1, text_x + text_width, text_y - 1)
+
+                # クリック領域としてURLリンクを設定
+                if url:
+                    c.linkURL(
+                        url, # url：開くべきリンク（http〜）
+                        (text_x, text_y, text_x + text_width, text_y + line_height), # (x1, y1, x2, y2)：リンク範囲の四角形（左下〜右上）
+                        relative=0, # relative=0：絶対座標を使う（ページ全体基準）
+                        thickness=0  # クリック領域の枠線は非表示
+                    )
+
                 y -= line_height # 1行描画ごとに y を減らして次行へ。
-            # 見出し間の余白
+
+            # 描画が終わったら色を黒に戻す
+            c.setFillColor("black")
+
             y -= 6 # 次の見出しとの間にちょっとしたスペースを確保。
 
     # 最後のフッター＆保存
