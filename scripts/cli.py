@@ -4,6 +4,12 @@ from scraper.generate_report import generate_pdf
 from scraper.generate_html import generate_html
 from scraper.generate_history_index import generate_history_index
 from datetime import datetime # datetime：今日の日付の取得に使用
+from scraper.fetch_news import get_all_headlines
+from db.save_headlines import save_headlines
+
+all_news = get_all_headlines()
+for source_name, headlines in all_news:
+    save_headlines(source_name, headlines)
 
 def main():
     parser = argparse.ArgumentParser(description="ニュースレポート自動生成CLI") # argparse.ArgumentParser(...)→ CLIに説明をつける
