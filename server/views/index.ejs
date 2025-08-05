@@ -28,7 +28,7 @@
   <h2>📚 過去のレポート</h2>
   <ul>
     <% recentReports.forEach(report => { %>
-      <li><a href="/public/history/<%= report %>" target="_blank"><%= report %></a></li>
+      <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
     <% }) %>
   </ul>
 

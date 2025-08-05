@@ -10,7 +10,7 @@
   <h1>📚 過去レポート一覧</h1>
   <ul>
     <% reports.forEach(report => { %>
-      <li><a href="/public/history/<%= report %>" target="_blank"><%= report %></a></li>
+      <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
     <% }) %>
   </ul>
   <p><a href="/">← 最新レポートに戻る</a></p>
