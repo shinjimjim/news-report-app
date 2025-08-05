@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>最新ニュースレポート</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
+    h1 { color: #333; }
+    h2 { margin-top: 2rem; color: #444; }
+    a { color: #007bff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .latest {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.4rem 0; }
+  </style>
+</head>
+<body>
+  <div class="latest">
+    <h1>📄 最新ニュースレポート</h1>
+    <p><a href="/public/<%= latestHtml %>" target="_blank">最新ニュースを表示</a></p>
+  </div>
+
+  <h2>📚 過去のレポート</h2>
+  <ul>
+    <% recentReports.forEach(report => { %>
+      <li><a href="/public/history/<%= report %>" target="_blank"><%= report %></a></li>
+    <% }) %>
+  </ul>
+
+  <p><a href="/history">→ 履歴をもっと見る</a></p>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>過去レポート一覧</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+
+<body>
+  <h1>📚 過去レポート一覧</h1>
+  <ul>
+    <% reports.forEach(report => { %>
+      <li><a href="/public/history/<%= report %>" target="_blank"><%= report %></a></li>
+    <% }) %>
+  </ul>
+  <p><a href="/">← 最新レポートに戻る</a></p>
+</body>
+</html>
