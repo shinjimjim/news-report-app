@@ -32,8 +32,8 @@ app.get('/', (req, res) => {
       .filter(f => f.endsWith('.html') && f !== 'index.html') // HTMLのみ、index.html除外
       .sort() // ファイル名昇順
       .reverse(); // 新しい順に
-    // 最新PDF（public直下の固定ファイル想定）
-    const latestHtml = 'news_report.html';
+    // 最新HTMLは配列の先頭
+    const latestHtmlFile = htmlFiles.length > 0 ? htmlFiles[0] : null;
     // 履歴は最大5件
     const recentReports = htmlFiles.slice(0, 5)
       .map(file => ({ //.map() で配列の中身を新しい形に変換します。file という文字列を { filename, displayName } というオブジェクトに変換。
@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
       displayName: formatReportName(file) //displayName : formatReportName(file) の戻り値
     }));
 
-    res.render('index', { latestHtml, recentReports }); // index.ejsに変数を渡す
+    res.render('index', { latestHtmlFile, recentReports, formatReportName }); // index.ejsに変数を渡す
   });
 });
 

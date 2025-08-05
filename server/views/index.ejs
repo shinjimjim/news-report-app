@@ -22,10 +22,14 @@
 <body>
   <div class="latest">
     <h1>📄 最新ニュースレポート</h1>
-    <p><a href="/public/<%= latestHtml %>" target="_blank">最新ニュースを表示</a></p>
+    <% if (latestHtmlFile) { %>
+      <p><a href="/public/history/<%= latestHtmlFile %>" target="_blank"><%= formatReportName(latestHtmlFile) %> を表示</a></p>
+    <% } else { %>
+      <p>最新レポートがありません</p>
+    <% } %>
   </div>
 
-  <h2>📚 過去のレポート</h2>
+  <h2>📚 過去のレポート（直近5件）</h2>
   <ul>
     <% recentReports.forEach(report => { %>
       <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
