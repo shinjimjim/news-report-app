@@ -1,6 +1,6 @@
 <%- include('partials/header', { pageTitle: '最新ニュースレポート' }) %>
 
-<div class="latest" style="background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:2rem;">
+<div class="latest" style="background:var(--card-bg); padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:2rem;">
   <h2>📄 最新ニュースレポート</h2>
   <% if (latestHtmlFile) { %>
     <p><a href="/public/history/<%= latestHtmlFile %>" target="_blank"><%= formatReportName(latestHtmlFile) %> を表示</a></p>
@@ -9,13 +9,39 @@
   <% } %>
 </div>
 
+<!-- 検索フォーム -->
+<input type="text" id="searchInput" placeholder="ニュース本文で検索" 
+       style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:1rem; border-radius:5px; border:1px solid #ccc;">
+
 <h2>📚 過去のレポート（直近5件）</h2>
-<ul>
+<ul id="reportList">
   <% recentReports.forEach(report => { %>
     <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
   <% }) %>
 </ul>
 
 <p><a href="/history">→ 履歴をもっと見る</a></p>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const reportList = document.getElementById('reportList');
+
+  searchInput.addEventListener('keyup', async function() {
+    const query = this.value.trim();
+    if (!query) {
+      // 検索欄が空 → 元の直近5件に戻す
+      reportList.innerHTML = `<% recentReports.forEach(report => { %>
+        <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
+      <% }) %>`;
+      return;
+    }
+    const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    // 検索結果を最大5件に制限
+    reportList.innerHTML = data.slice(0, 5).map(r =>
+      `<li><a href="/public/history/${r.filename}" target="_blank">${r.displayName}</a></li>`
+    ).join('');
+  });
+</script>
 
 <%- include('partials/footer') %>

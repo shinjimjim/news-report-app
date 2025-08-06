@@ -3,7 +3,7 @@
 <h2>📚 過去のニュースレポート一覧</h2>
 
 <!-- 検索フォーム -->
-<input type="text" id="searchInput" placeholder="日付やキーワードで検索" 
+<input type="text" id="searchInput" placeholder="ニュース本文で検索" 
        style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:1rem; border-radius:5px; border:1px solid #ccc;">
 
 <ul id="reportList" style="background:var(--card-bg); padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
@@ -21,14 +21,18 @@
 <script>
   const searchInput = document.getElementById('searchInput');
   const reportList = document.getElementById('reportList');
-  const items = reportList.getElementsByTagName('li');
 
-  searchInput.addEventListener('keyup', function() {
-    const query = this.value.toLowerCase();
-    for (let i = 0; i < items.length; i++) {
-      const text = items[i].innerText.toLowerCase();
-      items[i].style.display = text.includes(query) ? '' : 'none';
+  searchInput.addEventListener('keyup', async function() {
+    const query = this.value.trim();
+    if (!query) {
+      location.reload();
+      return;
     }
+    const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    reportList.innerHTML = data.map(r =>
+      `<li><a href="/public/history/${r.filename}" target="_blank">${r.displayName}</a></li>`
+    ).join('');
   });
 </script>
 
