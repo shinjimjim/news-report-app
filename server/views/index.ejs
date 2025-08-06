@@ -1,41 +1,21 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>最新ニュースレポート</title>
-  <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
-    h1 { color: #333; }
-    h2 { margin-top: 2rem; color: #444; }
-    a { color: #007bff; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .latest {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    ul { padding-left: 1.2rem; }
-    li { margin: 0.4rem 0; }
-  </style>
-</head>
-<body>
-  <div class="latest">
-    <h1>📄 最新ニュースレポート</h1>
-    <% if (latestHtmlFile) { %>
-      <p><a href="/public/history/<%= latestHtmlFile %>" target="_blank"><%= formatReportName(latestHtmlFile) %> を表示</a></p>
-    <% } else { %>
-      <p>最新レポートがありません</p>
-    <% } %>
-  </div>
+<%- include('partials/header', { pageTitle: '最新ニュースレポート' }) %>
 
-  <h2>📚 過去のレポート（直近5件）</h2>
-  <ul>
-    <% recentReports.forEach(report => { %>
-      <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
-    <% }) %>
-  </ul>
+<div class="latest" style="background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:2rem;">
+  <h2>📄 最新ニュースレポート</h2>
+  <% if (latestHtmlFile) { %>
+    <p><a href="/public/history/<%= latestHtmlFile %>" target="_blank"><%= formatReportName(latestHtmlFile) %> を表示</a></p>
+  <% } else { %>
+    <p>最新レポートがありません</p>
+  <% } %>
+</div>
 
-  <p><a href="/history">→ 履歴をもっと見る</a></p>
-</body>
-</html>
+<h2>📚 過去のレポート（直近5件）</h2>
+<ul>
+  <% recentReports.forEach(report => { %>
+    <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
+  <% }) %>
+</ul>
+
+<p><a href="/history">→ 履歴をもっと見る</a></p>
+
+<%- include('partials/footer') %>

@@ -1,18 +1,35 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <title>過去レポート一覧</title>
-  <link rel="stylesheet" href="/public/style.css">
-</head>
+<%- include('partials/header', { pageTitle: '過去のニュースレポート' }) %>
 
-<body>
-  <h1>📚 過去レポート一覧</h1>
-  <ul>
-    <% reports.forEach(report => { %>
-      <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
-    <% }) %>
-  </ul>
-  <p><a href="/">← 最新レポートに戻る</a></p>
-</body>
-</html>
+<h2>📚 過去のニュースレポート一覧</h2>
+
+<!-- 検索フォーム -->
+<input type="text" id="searchInput" placeholder="日付やキーワードで検索" 
+       style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:1rem; border-radius:5px; border:1px solid #ccc;">
+
+<ul id="reportList" style="background:var(--card-bg); padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+  <% reports.forEach(report => { %>
+    <li>
+      <a href="/public/history/<%= report.filename %>" target="_blank">
+        <%= report.displayName %>
+      </a>
+    </li>
+  <% }) %>
+</ul>
+
+<p><a href="/">← 最新レポートに戻る</a></p>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const reportList = document.getElementById('reportList');
+  const items = reportList.getElementsByTagName('li');
+
+  searchInput.addEventListener('keyup', function() {
+    const query = this.value.toLowerCase();
+    for (let i = 0; i < items.length; i++) {
+      const text = items[i].innerText.toLowerCase();
+      items[i].style.display = text.includes(query) ? '' : 'none';
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>
