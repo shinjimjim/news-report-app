@@ -15,6 +15,15 @@
 <input type="text" id="searchInput" placeholder="ニュース本文で検索" 
        style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:0.5rem; border-radius:5px; border:1px solid #ccc;">
 
+<h3 class="mt-8 text-lg font-semibold">ジャンル別に見る</h3>
+<div class="flex flex-wrap gap-2 mt-2">
+  <% ["政治", "経済", "ビジネス", "金融・マネー", "国際", "気象・災害", "地域・地方", "暮らし", "医療・健康", "教育・受験", "社会", "交通・事故", "スポーツ", "エンタメ", "科学・文化", "テクノロジー", "it・インターネット", "その他"].forEach(cat => { %>
+    <a href="/category/<%= encodeURIComponent(cat) %>" class="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
+      <%= cat %>
+    </a>
+  <% }) %>
+</div>
+
 <!-- もっと見るリンク（キーワード埋め込み） -->
 <a id="moreResultsLink" href="#" style="display:none; font-size:0.9rem;">→ 検索結果をもっと見る</a>
 

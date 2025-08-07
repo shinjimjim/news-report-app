@@ -125,6 +125,30 @@ app.get('/search-page', async (req, res) => {
   res.render('search_results', { keyword, results: rows });
 });
 
+// カテゴリ別フィルター表示ルート
+app.get('/category/:name', async (req, res) => {
+  const category = decodeURIComponent(req.params.name);
+
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    const [rows] = await connection.execute(
+      'SELECT title, url, date FROM headlines WHERE category = ? ORDER BY date DESC',
+      [category]
+    );
+    await connection.end();
+
+    res.render('category', {
+      pageTitle: `${category} のニュース一覧`, // ✅ これを必ず追加！
+      category,
+      headlines: rows
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('サーバーエラー');
+  }
+});
+
 // ポート3000でサーバーを起動し、起動確認メッセージを出力
 app.listen(3000, () => {
   console.log('✅ サーバー起動： http://localhost:3000');

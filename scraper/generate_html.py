@@ -89,8 +89,8 @@ def generate_html(main_path, archive_path): # この関数では、HTMLレポー
         html += f"<h2>{source_name}</h2>\n<ol>\n"
         for title, url in headlines:
             clean_title = remove_leading_number(title) # remove_leading_number(...)：番号を削除
-            # html += f'  <li><a href="{url}" target="_blank" rel="noopener">{clean_title}</a></li>\n'
-            html += f'  <li id="news-{news_id}"><a href="{url}" target="_blank" rel="noopener">{clean_title}</a></li>\n'
+            html += f'  <li><a href="{url}" target="_blank" rel="noopener">{clean_title}</a></li>\n'
+            # html += f'  <li id="news-{news_id}"><a href="{url}" target="_blank" rel="noopener">{clean_title}</a></li>\n'
         html += "</ol>\n"
 
     # # HTMLの末尾を閉じる

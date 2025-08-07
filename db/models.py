@@ -15,3 +15,4 @@ class Headline(Base): # Base を継承しているので、SQLAlchemyがこの�
     title = Column(Text) # ニュースの見出しタイトル、長めの文字列になる可能性があるため Text 型が使われています。
     url = Column(Text) # ニュース記事のリンクURL、これも長くなる可能性があるため Text 型。
     date = Column(Date) # 記事の掲載日や収集日などを記録するための日付フィールド（例：2025-08-04）
+    category = Column(String(50))

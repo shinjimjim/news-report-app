@@ -1,0 +1,18 @@
+<%- include('partials/header') %>
+
+<div class="container mx-auto px-4 py-6">
+  <h2 class="text-2xl font-bold mb-4">📂 <%= category %> のニュース一覧</h2>
+  <ul class="space-y-2">
+    <% headlines.forEach((headline) => { %>
+      <li>
+        <a href="<%= headline.url %>" target="_blank" class="text-blue-500 hover:underline">
+          <%= headline.title %>
+        </a>
+        <span class="text-gray-400 text-sm ml-2"><%= headline.date.toISOString().split('T')[0] %></span>
+      </li>
+    <% }) %>
+  </ul>
+  <a href="/" class="inline-block mt-6 text-sm text-blue-500 hover:underline">← トップに戻る</a>
+</div>
+
+<%- include('partials/footer') %>
