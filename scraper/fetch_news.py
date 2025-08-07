@@ -11,6 +11,21 @@ from scraper.news_sources.sponichi import get_sponichi_headlines
 from scraper.news_sources.internet_watch import get_internet_watch_headlines
 from scraper.news_sources.bbc import get_bbc_headlines
 from scraper.news_sources.cnn import get_cnn_headlines
+from db.settings import SessionLocal
+from db.models import Headline
+
+def save_and_return_ids(source_name, headlines):
+    """ニュースをDBに保存して (id, title, url) の形で返す"""
+    session = SessionLocal()
+    results = []
+    for title, url in headlines:
+        obj = Headline(source=source_name, title=title, url=url, date=datetime.now().date())
+        session.add(obj)
+        session.commit()
+        session.refresh(obj)  # 挿入後にidを取得
+        results.append((obj.id, title, url))
+    session.close()
+    return results
 
 def get_all_headlines():
     return [

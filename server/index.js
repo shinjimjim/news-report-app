@@ -5,6 +5,8 @@ const cheerio = require('cheerio');
 
 const app = express(); // Expressアプリケーション（サーバー）を作成
 
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
 app.set('view engine', 'ejs'); // ejsをテンプレートエンジンとして使用
 app.set('views', path.join(__dirname, 'views')); // テンプレートのディレクトリ
 
@@ -93,6 +95,34 @@ app.get('/search', (req, res) => {
     });
 
   res.json(results);
+});
+
+const mysql = require('mysql2/promise');
+const dbConfig = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME
+};
+
+// 検索結果ページ（SEO & 広告向け）
+app.get('/search-page', async (req, res) => {
+  const keyword = (req.query.q || '').trim();
+  if (!keyword) {
+    return res.render('search_results', { keyword, results: [] });
+  }
+
+  const conn = await mysql.createConnection(dbConfig);
+  const [rows] = await conn.execute(
+    `SELECT id, date, title, url
+     FROM headlines
+     WHERE title LIKE ?
+     ORDER BY date DESC`,
+    [`%${keyword}%`]
+  );
+  conn.end();
+
+  res.render('search_results', { keyword, results: rows });
 });
 
 // ポート3000でサーバーを起動し、起動確認メッセージを出力

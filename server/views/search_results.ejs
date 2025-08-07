@@ -1,0 +1,22 @@
+<%- include('partials/header', { pageTitle: `検索結果 - ${keyword}` }) %>
+
+<h2>🔍 「<%= keyword %>」の検索結果</h2>
+
+<% if (results.length === 0) { %>
+  <p>該当する記事はありませんでした。</p>
+<% } else { %>
+  <ul style="background:var(--card-bg); padding:1rem; border-radius:8px;">
+    <% results.forEach(r => { %>
+      <li style="margin-bottom:0.5rem;">
+        <span style="color:#888; font-size:0.9rem;">
+          <%= r.date.toISOString().split('T')[0] %>
+        </span> - 
+        <a href="<%= r.url %>" target="_blank"><%= r.title %></a>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<p><a href="/">← トップに戻る</a></p>
+
+<%- include('partials/footer') %>

@@ -2,17 +2,18 @@
 
 <h2>📚 過去のニュースレポート一覧</h2>
 
-<!-- 検索フォーム -->
+<!-- 即時絞り込み用検索 -->
 <input type="text" id="searchInput" placeholder="ニュース本文で検索" 
-       style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:1rem; border-radius:5px; border:1px solid #ccc;">
+       style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:0.5rem; border-radius:5px; border:1px solid #ccc;">
+
+<!-- もっと見るリンク（キーワード埋め込み） -->
+<a id="moreResultsLink" href="#" style="display:none; font-size:0.9rem;">→ 検索結果をもっと見る</a>
 
 <ul id="reportList" style="background:var(--card-bg); padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
   <% reports.forEach(report => { %>
-    <li>
-      <a href="/public/history/<%= report.filename %>" target="_blank">
-        <%= report.displayName %>
-      </a>
-    </li>
+    <li><a href="/public/history/<%= report.filename %>" target="_blank">
+      <%= report.displayName %>
+    </a></li>
   <% }) %>
 </ul>
 
@@ -21,18 +22,28 @@
 <script>
   const searchInput = document.getElementById('searchInput');
   const reportList = document.getElementById('reportList');
+  const moreResultsLink = document.getElementById('moreResultsLink');
 
   searchInput.addEventListener('keyup', async function() {
     const query = this.value.trim();
     if (!query) {
-      location.reload();
+      // 検索欄が空 → 元の全件に戻す
+      moreResultsLink.style.display = 'none';
+      reportList.innerHTML = `<% reports.forEach(report => { %>
+        <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
+      <% }) %>`;
       return;
     }
+    // 即時検索（AJAX）
     const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
     const data = await res.json();
     reportList.innerHTML = data.map(r =>
       `<li><a href="/public/history/${r.filename}" target="_blank">${r.displayName}</a></li>`
     ).join('');
+
+    // 「もっと見る」リンク設定
+    moreResultsLink.href = `/search-page?q=${encodeURIComponent(query)}`;
+    moreResultsLink.style.display = 'inline-block';
   });
 </script>
 
