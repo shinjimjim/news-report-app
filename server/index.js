@@ -23,6 +23,12 @@ function formatReportName(filename) {
   return filename;
 }
 
+const CATEGORIES = [
+  "政治", "経済", "ビジネス", "金融・マネー", "国際", "気象・災害", "地域・地方", "暮らし",
+  "医療・健康", "教育・受験", "社会", "交通・事故", "スポーツ", "エンタメ",
+  "科学・文化", "テクノロジー", "it・インターネット", "その他"
+];
+
 // GET / ：リクエスト（トップページ）へのルート定義（最新HTML＋履歴5件）
 app.get('/', (req, res) => {
   const historyDir = path.join(__dirname, '../public/history');
@@ -44,7 +50,15 @@ app.get('/', (req, res) => {
       displayName: formatReportName(file) //displayName : formatReportName(file) の戻り値
     }));
 
-    res.render('index', { latestHtmlFile, recentReports, formatReportName }); // index.ejsに変数を渡す
+    // res.render('index', { latestHtmlFile, recentReports, formatReportName }); // index.ejsに変数を渡す
+
+    res.render('index', {
+      pageTitle: 'トップ',
+      latestHtmlFile,
+      recentReports,
+      formatReportName,
+      categories: CATEGORIES // ← これを渡す
+    });
   });
 });
 
