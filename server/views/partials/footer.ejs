@@ -1,6 +1,89 @@
   </main>
-  <footer>
-    &copy; <%= new Date().getFullYear() %> まいにゅ〜
+  <footer class="site-footer" role="contentinfo" aria-label="サイトフッター">
+    <style>
+      :root{
+        --footer-bg: var(--card-bg, #f7f7f7);
+        --footer-border: #ddd;
+        --footer-text: #555;
+        --footer-link: var(--link-color, #0a66c2);
+        --footer-link-bg-hover: rgba(0,0,0,0.05);
+        --footer-link-bg-mobile: rgba(0,0,0,0.03);
+      }
+
+      @media (prefers-color-scheme: dark){
+        :root{
+          --footer-bg: rgba(255,255,255,0.05);
+          --footer-border: rgba(255,255,255,0.12);
+          --footer-text: #aaa;
+          --footer-link-bg-hover: rgba(255,255,255,0.08);
+          --footer-link-bg-mobile: rgba(255,255,255,0.06);
+        }
+      }
+
+      .site-footer{
+        background: var(--footer-bg);
+        border-top: 1px solid var(--footer-border);
+        margin-top: 2rem;
+        padding: 1rem;
+        text-align: center;
+        font-size: .9rem;
+      }
+
+      .site-footer__nav{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: .5rem .75rem;
+        margin-bottom: .5rem;
+      }
+
+      .site-footer__nav a{
+        color: var(--footer-link);
+        text-decoration: none;
+        padding: .45rem .65rem;
+        border-radius: .5rem;
+        transition: background .2s ease, transform .02s ease;
+        touch-action: manipulation;
+      }
+
+      .site-footer__nav a:hover{
+        background: var(--footer-link-bg-hover);
+      }
+
+      .site-footer__nav a:active{
+        transform: scale(0.98);
+      }
+
+      .site-footer__copy{
+        color: var(--footer-text);
+        margin-top: .25rem;
+      }
+
+      @media (max-width: 600px){
+        .site-footer__nav{
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .site-footer__nav a{
+          background: var(--footer-link-bg-mobile);
+          width: 100%;
+          text-align: center;
+          padding: .65rem .8rem;
+          border-radius: .6rem;
+        }
+      }
+    </style>
+
+    <nav class="site-footer__nav" aria-label="フッターナビ">
+      <a href="/public/privacy.html">プライバシーポリシー</a>
+      <a href="/public/disclaimer.html">免責事項</a>
+      <a href="/public/terms.html">利用規約</a>
+      <a href="/public/contact.html">お問い合わせ</a>
+      <a href="/public/about.html">運営者情報</a>
+    </nav>
+    <p class="site-footer__copy">
+      &copy; <%= new Date().getFullYear() %> まいにゅ〜. All rights reserved.
+    </p>
   </footer>
 </body>
 </html>
