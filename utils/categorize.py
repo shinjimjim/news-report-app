@@ -1,6 +1,8 @@
-def categorize_title(title: str) -> str:
-    title = title.lower()
+def categorize_title(title: str) -> str: # 引数：title（文字列型）→ 分類対象になるニュースの見出しやタイトル。戻り値：文字列（カテゴリ名、例：「政治」「経済」など）
+    # タイトルの小文字化
+    title = title.lower() # タイトル全体を小文字に変換します。こうすることで、大文字・小文字の違いを気にせず比較できるようになります。
 
+    # カテゴリ辞書の定義
     categories = {
        "政治": ['政府', '首相', '内閣', '大臣', '選挙', '国会', '官邸', '政党', '議員', '政治家'],
         "経済": ['経済', '景気', 'gdp', 'インフレ', '円安', '金利', '財政', '物価', 'デフレ'],
@@ -27,8 +29,10 @@ def categorize_title(title: str) -> str:
         "旅行・観光": ['観光', '旅行', 'ツアー', '温泉', '名所', 'ホテル', '宿泊', '航空券']
     }
 
-    for category, keywords in categories.items():
-        if any(kw.lower() in title for kw in keywords):
-            return category
+    # 分類ロジック
+    for category, keywords in categories.items(): # categories.items()カテゴリ辞書を (カテゴリ名, キーワードリスト) のペアとして順番に取り出します。
+        if any(kw.lower() in title for kw in keywords): # そのカテゴリのキーワードリストの中に、1つでもタイトルに含まれているものがあれば True。
+            return category # 最初に一致したカテゴリを即座に返します
 
+    # どれにも当てはまらない場合
     return "その他"
