@@ -7,10 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
   <!-- Tailwind CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-
+  <!-- スマホ幅に対応。 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
     :root {
       --bg-color: #fefefe;
@@ -135,17 +133,20 @@
       <a href="/">🏠 最新</a>
       <a href="/history">📚 履歴</a>
     </nav>
-    <button class="dark-toggle" onclick="toggleDarkMode()">🌙 ダークモード</button>
+     <button class="dark-toggle" type="button" aria-pressed="false" onclick="toggleDarkMode(this)">🌙 ダークモード</button>
   </header>
   <main>
   <script>
-    function toggleDarkMode() {
+    function toggleDarkMode(btn){
       document.body.classList.toggle('dark');
-      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+      const isDark = document.body.classList.contains('dark');
+      localStorage.setItem('darkMode', isDark);
+      if (btn) btn.setAttribute('aria-pressed', String(isDark));
     }
     window.onload = () => {
-      if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark');
-      }
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      if (isDark) document.body.classList.add('dark');
+      const btn = document.querySelector('.dark-toggle');
+      if (btn) btn.setAttribute('aria-pressed', String(isDark));
     };
   </script>

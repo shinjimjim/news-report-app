@@ -7,6 +7,7 @@ from datetime import datetime # datetime：今日の日付の取得に使用
 from scraper.fetch_news import get_all_headlines
 from db.save_headlines import save_headlines
 
+# get_all_headlines() で全ニュースソースの見出しを収集して、それをDB保存用関数 save_headlines(source_name, headlines) にソースごと渡して保存する制御ループ
 all_news = get_all_headlines()
 for source_name, headlines in all_news:
     save_headlines(source_name, headlines)
