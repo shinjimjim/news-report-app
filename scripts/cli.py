@@ -6,6 +6,7 @@ from scraper.generate_history_index import generate_history_index
 from datetime import datetime # datetime：今日の日付の取得に使用
 from scraper.fetch_news import get_all_headlines
 from db.save_headlines import save_headlines
+from scripts.build_html import build_html
 
 # get_all_headlines() で全ニュースソースの見出しを収集して、それをDB保存用関数 save_headlines(source_name, headlines) にソースごと渡して保存する制御ループ
 all_news = get_all_headlines()
@@ -45,6 +46,9 @@ def main():
 
         print("📚 履歴一覧(index.html)生成中...")
         generate_history_index(history_dir, index_path) # public/history/ にある HTML 一覧を読み込み、リンク付きの index.html を作る
+
+        print("📊 カテゴリ別ニュース一覧(reports/index.html)生成中...")
+        build_html()
 
         print("✅ 完了しました！")
 

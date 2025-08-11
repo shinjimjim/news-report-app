@@ -12,6 +12,7 @@ app.set('view engine', 'ejs'); // EJS: res.render('index', data) → views/index
 app.set('views', path.join(__dirname, 'views'));
 // /public パスで静的ファイルを公開する設定
 app.use('/public', express.static(path.join(__dirname, '../public'))); // express.static() は指定フォルダ内のファイル（PDFや画像など）をそのまま公開できるようにします。path.join(__dirname, '../public') は public フォルダまでの絶対パスを作っています。__dirname は現在のファイルのあるディレクトリ。その1つ上の ../public フォルダを指します。
+app.use('/reports', express.static(path.join(__dirname, '../public/reports')));
 
 // ファイル名 → 日本語表示
 function formatReportName(filename) {

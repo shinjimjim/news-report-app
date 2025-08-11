@@ -25,6 +25,7 @@ venv/
 /public/news_report.pdf
 /public/history/index.html
 /public/history/news_*.html
+/public/reports/index.html
 
 # ===========================
 # VSCodeやIDEの設定（共有不要なら）

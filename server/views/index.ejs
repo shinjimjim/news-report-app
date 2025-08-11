@@ -9,11 +9,16 @@
   <% } else { %>
     <p>最新レポートがありません</p>
   <% } %>
+  <p style="margin-top:1rem;">
+    <a href="/public/reports/index.html" target="_blank" style="color:#1e90ff; font-weight:bold;">
+      📊 カテゴリ別ニュース一覧を見る
+    </a>
+  </p>
 </div>
 
 <!-- 即時絞り込み用検索 -->
 <input type="text" id="searchInput" placeholder="ニュース本文で検索" 
-       style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:0.5rem; border-radius:5px; border:1px solid #ccc;">
+       style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:0.5rem; border-radius:5px; border:1px solid #ccc; background:#fff; color:#000;">
 
 <h3 class="text-lg font-bold mt-6 mb-2">ジャンル別に見る</h3>
 <div class="flex flex-wrap gap-2">
