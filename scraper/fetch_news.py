@@ -14,6 +14,7 @@ from scraper.news_sources.bbc import get_bbc_headlines
 from scraper.news_sources.cnn import get_cnn_headlines
 from db.settings import SessionLocal
 from db.models import Headline
+from db.save_headlines import save_headlines  # 収集→保存の統合呼び出し用
 
 # ニュースをDBに保存して (id, title, url) の形で返す
 def save_and_return_ids(source_name, headlines):
@@ -42,3 +43,14 @@ def get_all_headlines():
         ("BBCニュース", get_bbc_headlines()),
         ("CNN.co.jp", get_cnn_headlines())
     ]
+
+# このファイル単体で実行した場合の簡易パイプライン
+if __name__ == "__main__":
+    all_items = get_all_headlines() # get_all_headlines() で全サイト分を取得。
+    total = 0
+    for source_name, headlines in all_items:
+        if not headlines: # 空ならスキップ。
+            continue
+        save_headlines(source_name, headlines)
+        total += len(headlines)
+    print(f"✅ fetched & saved: {total} items")

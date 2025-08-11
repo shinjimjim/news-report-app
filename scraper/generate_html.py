@@ -1,13 +1,41 @@
-from datetime import datetime # datetime: 現在の日時を取得・整形するために使います（発行日時の表示用）。
+from datetime import datetime, date, timedelta # datetime: 現在の日時を取得・整形するために使います（発行日時の表示用）。
 import os # os: ファイルパスを動的に生成するために使います。
 import re # re: 正規表現（文字列処理）を行うPython標準ライブラリです。
+# 既存フォールバック用（今日分がDBに無いときだけ使う）
 from scraper.fetch_news import get_all_headlines
+# DBから headline を取る
+from db.settings import SessionLocal
+from db.models import Headline
 
 # 番号付きテキストから番号を除去する（"1○○" → "○○"）
 def remove_leading_number(text):
     if isinstance(text, str) and text[:1].isdigit(): # isdigit() で先頭文字が数字かどうか確認。
         return text[1:] # text[1:] でその1文字目を取り除いた文字列を返す。
     return text
+
+# DBから最近のニュースを取得する関数
+def _fetch_from_db_for_recent(days: int = 1, max_per_source: int = 5):
+    """
+    直近 days 日に該当する headlines をDBから取得して、{source: [Headline,...]}で返す。
+    """
+    session = SessionLocal()
+    try:
+        since = date.today() - timedelta(days=days-1)  # 今日を含む days 分のデータを抽出
+        rows = (
+            session.query(Headline)
+            .filter(Headline.date >= since)
+            .order_by(Headline.id.desc())
+            .all()
+        )
+        bucket = {}
+        for r in rows:
+            bucket.setdefault(r.source, []) # bucket.setdefault() でソース別に分類
+            # ソースごとに最大 max_per_source 件まで
+            if (max_per_source is None) or (len(bucket[r.source]) < max_per_source):
+                bucket[r.source].append(r)
+        return bucket
+    finally:
+        session.close()
 
 # HTML出力関数
 def generate_html(main_path, archive_path): # この関数では、HTMLレポートを2か所に保存します：main_path: 最新のニュース用（例：public/news_report.html）archive_path: 履歴保存用（例：public/history/news_2025-07-27.html）
@@ -17,6 +45,33 @@ def generate_html(main_path, archive_path): # この関数では、HTMLレポー
     now = datetime.now()
     now_str = now.strftime('%Y/%m/%d %H:%M') # now_str: HTMLに表示する発行日時（人間向け）
     date_str = now.strftime('%Y-%m-%d') # date_str: ファイル名やアーカイブに使う（機械向け）
+
+    # 例: 直近2日・各ソース最大10件表示（上限なしにするなら max_per_source=None）
+    bucket = _fetch_from_db_for_recent(days=7, max_per_source=5)
+
+    # もし今日分がDBに1件もなければ、既存のフローにフォールバック
+    # （初回実行や収集失敗時の保険）
+    use_db = True
+    if not bucket:
+        use_db = False
+        all_news = get_all_headlines()  # [(source, [(title,url),..]),..]
+
+    # 表示したいソース順（任意）：DBのキー順だとバラつくので固定順を用意
+    preferred_sources = [
+        "NHKニュース", "時事通信", "ITmedia", "東洋経済オンライン", "ダイヤモンド・オンライン",
+        "ABEMA TIMES", "Sponichi Annex", "INTERNET Watch", "BBCニュース", "CNN.co.jp"
+    ]
+    if use_db:
+        ordered_sources = [s for s in preferred_sources if s in bucket] \
+                          + [s for s in bucket.keys() if s not in preferred_sources]
+    else:
+        ordered_sources = [s for s, _ in all_news]
+    # DBモードなら、bucketに存在するものだけ順序適用
+    # ordered_sources = (
+    #     [s for s in preferred_sources if (use_db and s in bucket)]
+    #     if use_db else
+    #     [s for s, _ in all_news]
+    # )
 
     # HTMLの冒頭テンプレート（ヘッダー）
     html = f"""<!DOCTYPE html>
@@ -84,16 +139,39 @@ def generate_html(main_path, archive_path): # この関数では、HTMLレポー
 # モバイル対応（<meta name="viewport">あり）
 # <ol>：順序付きリスト（自動で「1.」「2.」と番号が付きます）
 
-    # 各ニュース見出しを <li> タグとしてHTMLリストに追加
-    for source_name, headlines in all_news:
-        html += f"<h2>{source_name}</h2>\n<ol>\n"
-        for title, url in headlines:
-            clean_title = remove_leading_number(title) # remove_leading_number(...)：番号を削除
-            html += f'  <li><a href="{url}" target="_blank" rel="noopener">{clean_title}</a></li>\n'
-            # html += f'  <li id="news-{news_id}"><a href="{url}" target="_blank" rel="noopener">{clean_title}</a></li>\n'
-        html += "</ol>\n"
+    # --- 本体描画 ---
+    # DBモード：bucket[source] は Headline の配列
+    if use_db:
+        for source_name in ordered_sources:
+            items = bucket.get(source_name, [])
+            if not items:
+                continue
+            html += f"<h2>{source_name}</h2>\n<ol>\n"
+            for r in items: # r は Headline インスタンス
+                clean_title = remove_leading_number(r.title or "")
+                html += f'  <li><a href="{r.url}" target="_blank" rel="noopener">{clean_title}</a>'
+                # 要約
+                if r.summary: # r.summary や r.keywords はDBに保存された情報
+                    html += f'<div class="summary">{r.summary}</div>'
+                # キーワード（カンマ区切り → #タグ風）
+                if r.keywords:
+                    tags = ' #'.join([k.strip() for k in r.keywords.split(',') if k.strip()]) # キーワードは # をつけてハッシュタグ風に表示
+                    if tags:
+                        html += f'<div class="keywords">#{tags}</div>'
+                html += "</li>\n"
+            html += "</ol>\n"
+    else:
 
-    # # HTMLの末尾を閉じる
+        # フォールバック：従来のスクレイプ結果をそのまま表示（要約は出ない）
+        # 各ニュース見出しを <li> タグとしてHTMLリストに追加
+        for source_name, headlines in all_news:
+            html += f"<h2>{source_name}</h2>\n<ol>\n"
+            for title, url in headlines:
+                clean_title = remove_leading_number(title) # remove_leading_number(...)：番号を削除
+                html += f'  <li><a href="{url}" target="_blank" rel="noopener">{clean_title}</a></li>\n'
+            html += "</ol>\n"
+
+    # HTMLの末尾を閉じる
     html += """    <footer>提供：まいにゅ〜</footer>
 </body>
 </html>"""

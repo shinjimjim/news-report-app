@@ -16,3 +16,7 @@ class Headline(Base): # Base を継承しているので、SQLAlchemyがこの�
     url = Column(Text) # ニュース記事のリンクURL、これも長くなる可能性があるため Text 型。
     date = Column(Date) # 記事の掲載日や収集日などを記録するための日付フィールド（例：2025-08-04）
     category = Column(String(50))
+    # LLM生成の短い要約とキーワードを保存
+    summary = Column(String(120)) # 最大60字想定 + 余裕
+    keywords = Column(String(255)) # "A,B,C" のカンマ区切りで格納
+    body = Column(Text)        # 記事本文（任意）
