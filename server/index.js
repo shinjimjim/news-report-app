@@ -84,38 +84,78 @@ app.get('/history', (req, res) => {
 });
 
 // ニュース本文キーワード検索API
-app.get('/search', (req, res) => {
-  // クエリパラメータの取得
-  const keyword = (req.query.q || '').toLowerCase(); //URLの ?q=... 部分から検索ワードを取得。|| '' で未指定時に空文字にする（undefined対策）.toLowerCase() で小文字化 → 検索時に大文字・小文字を区別しないため。
-  // キーワード未指定なら空配列を返す
-  if (!keyword) return res.json([]); //検索ワードが空なら何も検索せず、即終了。res.json([]) は空配列をJSONで返す（HTTP 200）。
+// 「キーワードでタイトルを部分一致検索」しつつ、scope=recent5 の時だけ「直近5日分に限定」→ 同じ日付（＝レポートファイル）単位でグルーピングしてJSONを返します。
+app.get('/search', async (req, res) => {
+  // クエリ取得
+  const q = (req.query.q || '').trim(); // GET /search?q=... を受け取るAPI。trim() で前後空白を除去。q はタイトル検索用キーワード。空なら即終了（無駄なDBアクセスを回避）。
+  const scope = (req.query.scope || '').trim(); // scope は絞り込みオプション。recent5 指定時だけ検索対象日付を「最後の5日」に限定。
+  if (!q) return res.json([]);
 
-  // 履歴ディレクトリのパス作成
-  const historyDir = path.join(__dirname, '../public/history'); //現在のファイルがあるディレクトリ（__dirname）からの相対パスで../public/history フォルダを指す絶対パスを作成。
-  // 検索結果を入れる配列用意
-  const results = []; // 条件一致したHTMLファイルの情報（ファイル名・表示名）を格納します。
+  // DB接続と結果入れ物
+  const conn = await mysql.createConnection(dbConfig);
+  let rows = [];
 
-  // ディレクトリ内のHTMLファイルを全件取得
-  fs.readdirSync(historyDir) // fs.readdirSync() → 同期処理で historyDir 内のファイル一覧を取得。
-    .filter(f => f.endsWith('.html') && f !== 'index.html') // .filter(...) で以下の条件に一致するファイルだけ残す:.endsWith('.html') → HTMLファイルのみ。f !== 'index.html' → 一覧ページ用のindex.htmlは除外
-    // 各HTMLファイルを読み込み＆検索
-    .forEach(file => { // filePath → ファイルの絶対パス作成。
-      const filePath = path.join(historyDir, file);
-      const html = fs.readFileSync(filePath, 'utf8'); // fs.readFileSync(..., 'utf8') → HTMLファイルを文字コードUTF-8で読み込み。
-      const $ = cheerio.load(html); // cheerio.load(html) → HTML文字列をDOM風オブジェクトとして扱えるようにする。jQueryと同じように $('タグ') で要素を取得可能。
+  // scope=recent5 のロジック
+  if (scope === 'recent5') { // レポート単位＝日付ごとの最新5日 を取得。
+    const [dateRows] = await conn.execute(
+      `SELECT date AS dt
+         FROM headlines
+        GROUP BY date
+        ORDER BY date DESC
+        LIMIT 5`
+    );
+    const dates = dateRows.map(r => r.dt);
+    if (dates.length === 0) {
+      await conn.end();
+      return res.json([]);
+    }
 
-      // 見出し・本文テキストを結合
-      const textContent = $('h1,h2,h3,p,li').text().toLowerCase(); // $('h1,h2,h3,p,li') → HTML内の全h1,h2,h3,p,liタグを選択。.text() → 選択要素のテキスト部分だけを連結して取得（タグは除外）。.toLowerCase() → 検索のために小文字化。
-      // キーワード含有チェック
-      if (textContent.includes(keyword)) { // .includes(keyword) → 単純部分一致でキーワードがあるか確認。
-        results.push({ // 一致したら results にオブジェクトを追加
-          filename: file, // filename → 実際のファイル名（例: "news_2025-08-01.html")
-          displayName: formatReportName(file) // displayName → formatReportName(file)で変換（例: "2025年8月1日版"）
-        });
-      }
+    // その5日分に限定して検索
+    const placeholders = dates.map(() => '?').join(','); // 取得した 5つの日付だけ を IN (?, ?, ?, ?, ?) で絞り込み、さらにタイトルLIKEで検索。
+    const params = [`%${q}%`, ...dates];
+
+    const [r] = await conn.execute(
+      `SELECT DATE_FORMAT(date,'%Y-%m-%d') AS ymd, id, title, url
+         FROM headlines
+        WHERE title LIKE ?
+          AND date IN (${placeholders})
+        ORDER BY date DESC`,
+      params
+    );
+    rows = r;
+  } else {
+    // 従来の全期間検索
+    const [r] = await conn.execute(
+      `SELECT DATE_FORMAT(date,'%Y-%m-%d') AS ymd, id, title, url
+         FROM headlines
+        WHERE title LIKE ?
+        ORDER BY date DESC
+        LIMIT 300`,
+      [`%${q}%`]
+    );
+    rows = r;
+  }
+
+  await conn.end();
+
+  // レポート（=日付）ごとにグルーピング
+  const map = new Map();
+  for (const r of rows) {
+    const filename = `news_${r.ymd}.html`; // ymd（例：2025-08-01）から レポートHTMLのファイル名 を組み立て、Map で束ねる。
+    if (!map.has(filename)) {
+      map.set(filename, {
+        filename,
+        displayName: formatReportName(filename),
+        items: []
+      });
+    }
+    map.get(filename).items.push({
+      id: r.id,
+      title: r.title,
+      url: r.url
     });
-
-  res.json(results);
+  }
+  res.json([...map.values()]);
 });
 
 // MySQLから記事タイトルをキーワード検索して、HTMLページとして返す機能
@@ -129,30 +169,55 @@ const dbConfig = {
   database: process.env.DB_NAME
 };
 
-// 検索結果ページ（SEO & 広告向け）
+// 検索結果ページ
 app.get('/search-page', async (req, res) => { // async 関数なので、中で await が使える。
   // クエリパラメータの取得と整形
   const keyword = (req.query.q || '').trim(); //URLの ?q=... 部分からキーワードを取得。.trim() で前後の空白を削除。|| '' で未指定時は空文字にする。
+  const scope   = (req.query.scope || '').trim();
   // キーワードがない場合の処理
-  if (!keyword) {
-    return res.render('search_results', { keyword, results: [] }); // 空文字なら検索せず、空の結果をsearch_results.ejsに渡して終了。return を使って処理を中断するのがポイント。
-  }
+  if (!keyword) return res.render('search_results', { keyword, results: [], scope });
 
   // MySQLに接続
   const conn = await mysql.createConnection(dbConfig); // mysql.createConnection() で単発のDB接続を作成。await で接続完了を待ってから次へ進む。
-  // 検索クエリの実行
-  const [rows] = await conn.execute( // conn.execute() → プレースホルダ付きSQLを実行。
-    `SELECT id, date, title, url
-     FROM headlines
-     WHERE title LIKE ?
-     ORDER BY date DESC`,
-    [`%${keyword}%`]
-  ); // ? に [%${keyword}%] が安全に埋め込まれる（SQLインジェクション対策）。LIKE 検索なので部分一致。ORDER BY date DESC → 新しい日付から順に並び替え。戻り値構造:rows: 検索結果（配列）fields: カラム情報（今回は使わない）
-  // 接続終了
-  conn.end();
+  let rows = [];
 
-  // 検索結果をHTMLとして返す
-  res.render('search_results', { keyword, results: rows }); // views/search_results.ejs を描画。EJS側でループしてタイトルや日付、URLを表示する。
+  if (scope === 'recent5') {
+    // 直近5日（＝5レポート分）の日付を取得
+    const [dateRows] = await conn.execute(
+      `SELECT date AS dt FROM headlines GROUP BY date ORDER BY date DESC LIMIT 5`
+    );
+    const dates = dateRows.map(r => r.dt);
+    if (dates.length === 0) {
+      await conn.end();
+      return res.render('search_results', { keyword, results: [], scope });
+    }
+
+    // その5日分に限定して検索
+    const placeholders = dates.map(() => '?').join(',');
+    const params = [`%${keyword}%`, ...dates];
+    const [r] = await conn.execute(
+      `SELECT id, date, title, url
+         FROM headlines
+        WHERE title LIKE ?
+          AND date IN (${placeholders})
+        ORDER BY date DESC`,
+      params
+    );
+    rows = r;
+  } else {
+    // 全期間
+    const [r] = await conn.execute(
+      `SELECT id, date, title, url
+         FROM headlines
+        WHERE title LIKE ?
+        ORDER BY date DESC`,
+      [`%${keyword}%`]
+    );
+    rows = r;
+  }
+
+  await conn.end();
+  res.render('search_results', { keyword, results: rows, scope });
 });
 
 // カテゴリ別フィルター表示ルート

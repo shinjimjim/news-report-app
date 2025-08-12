@@ -16,10 +16,6 @@
   </p>
 </div>
 
-<!-- 即時絞り込み用検索 -->
-<input type="text" id="searchInput" placeholder="ニュース本文で検索" 
-       style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:0.5rem; border-radius:5px; border:1px solid #ccc; background:#fff; color:#000;">
-
 <h3 class="text-lg font-bold mt-6 mb-2">ジャンル別に見る</h3>
 <div class="flex flex-wrap gap-2">
   <% categories.forEach(cat => { %>
@@ -30,10 +26,12 @@
   <% }) %>
 </div>
 
-<!-- もっと見るリンク（キーワード埋め込み） -->
-<a id="moreResultsLink" href="#" style="display:none; font-size:0.9rem;">→ 検索結果をもっと見る</a>
-
 <h2>📚 過去のレポート（直近5件）</h2>
+
+<!-- 即時絞り込み用検索 -->
+<input type="text" id="searchInput" placeholder="ニュース本文で検索" 
+       style="width:100%; max-width:400px; padding:0.5rem; margin-bottom:0.5rem; border-radius:5px; border:1px solid #ccc; background:#fff; color:#000;">
+
 <ul id="reportList">
   <% recentReports.forEach(report => { %>
     <li><a href="/public/history/<%= report.filename %>" target="_blank">
@@ -46,29 +44,63 @@
 
 <script>
   const searchInput = document.getElementById('searchInput');
-  const reportList = document.getElementById('reportList');
-  const moreResultsLink = document.getElementById('moreResultsLink');
+  const reportList  = document.getElementById('reportList');
 
-  searchInput.addEventListener('keyup', async function() {
+  // 初期（直近5件リスト）のHTMLを保持：空に戻すとき用
+  const initialListHTML = `\
+<% recentReports.forEach(report => { %>
+  <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
+<% }) %>`;
+
+  // 簡易エスケープ
+  const esc = (s) => String(s).replace(/[&<>"']/g, m =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])
+  );
+
+  searchInput.addEventListener('keyup', async function () {
     const query = this.value.trim();
+
+    // 入力なし → 初期表示へ
     if (!query) {
-      // 検索欄が空 → 元の直近5件に戻す
-      moreResultsLink.style.display = 'none';
-      reportList.innerHTML = `<% recentReports.forEach(report => { %>
-        <li><a href="/public/history/<%= report.filename %>" target="_blank"><%= report.displayName %></a></li>
-      <% }) %>`;
+      reportList.innerHTML = initialListHTML;
       return;
     }
-    // 即時検索（AJAX）
-    const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
-    const data = await res.json();
-    reportList.innerHTML = data.slice(0, 5).map(r =>
-      `<li><a href="/public/history/${r.filename}" target="_blank">${r.displayName}</a></li>`
-    ).join('');
 
-    // 「もっと見る」リンク設定
-    moreResultsLink.href = `/search-page?q=${encodeURIComponent(query)}`;
-    moreResultsLink.style.display = 'inline-block';
+    // 直近5レポート限定で検索
+    const res    = await fetch(`/search?q=${encodeURIComponent(query)}&scope=recent5`);
+    const groups = await res.json();
+
+    // 総ヒット件数（見出し件数）
+    const total = groups.reduce((sum, g) => sum + ((g.items && g.items.length) || 0), 0);
+
+    // 0件表示
+    if (total === 0) {
+      reportList.innerHTML = `
+        <li class="list-none">
+          <div class="mt-3 p-4 rounded-md shadow"
+               style="background:var(--card-bg); color:var(--text-color); border-left:4px solid #f59e0b;">
+            該当するニュースが見つかりません。
+            <div style="opacity:.8; font-size:.9rem; margin-top:.25rem;">
+              ヒント：キーワードを短くする／別表記で試す（例：<span style="opacity:.9">花火大会</span> → <span style="opacity:.9">花火</span>）
+            </div>
+          </div>
+        </li>`;
+      return;
+    }
+
+    // レポート → 見出し（外部記事URL）を入れ子で表示
+    reportList.innerHTML = groups.slice(0, 5).map(g => `
+      <li class="mb-3">
+        <a href="/public/history/${g.filename}" target="_blank" class="font-semibold underline">
+          ${esc(g.displayName)}
+        </a>
+        <ul class="mt-1 ml-5 list-disc">
+          ${(g.items || []).slice(0, 5).map(it =>
+            `<li><a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a></li>`
+          ).join('')}
+        </ul>
+      </li>
+    `).join('');
   });
 </script>
 
