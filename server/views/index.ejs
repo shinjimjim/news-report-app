@@ -9,11 +9,6 @@
   <% } else { %>
     <p>最新レポートがありません</p>
   <% } %>
-  <p style="margin-top:1rem;">
-    <a href="/public/reports/index.html" target="_blank" style="color:#1e90ff; font-weight:bold;">
-      📊 カテゴリ別ニュース一覧を見る
-    </a>
-  </p>
 </div>
 
 <h3 class="text-lg font-bold mt-6 mb-2">ジャンル別に見る</h3>
@@ -24,9 +19,16 @@
        <%= cat %>
     </a>
   <% }) %>
+  <p style="margin-top:1rem;">
+    <a href="/public/reports/index.html" target="_blank" style="color:#1e90ff; font-weight:bold;">
+      📊 カテゴリ別ニュース一覧を見る
+    </a>
+  </p>
 </div>
 
-<h2>📚 過去のレポート（直近5件）</h2>
+<hr class="my-8 md:my-10 border-t border-gray-400/30 dark:border-gray-500/30">
+
+<h2 class="mt-8 md:mt-12">📚 過去のレポート（直近5件）</h2>
 
 <!-- 即時絞り込み用検索 -->
 <input type="text" id="searchInput" placeholder="ニュース本文で検索" 
@@ -40,7 +42,12 @@
   <% }) %>
 </ul>
 
-<p><a href="/history">→ 履歴をもっと見る</a></p>
+<a href="/history"
+   class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white font-semibold
+          shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400
+          transform active:scale-95 transition">
+  📚 履歴をもっと見る
+</a>
 
 <script>
   const searchInput = document.getElementById('searchInput');

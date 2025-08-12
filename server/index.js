@@ -14,6 +14,11 @@ app.set('views', path.join(__dirname, 'views'));
 app.use('/public', express.static(path.join(__dirname, '../public'))); // express.static() は指定フォルダ内のファイル（PDFや画像など）をそのまま公開できるようにします。path.join(__dirname, '../public') は public フォルダまでの絶対パスを作っています。__dirname は現在のファイルのあるディレクトリ。その1つ上の ../public フォルダを指します。
 app.use('/reports', express.static(path.join(__dirname, '../public/reports')));
 
+app.use((req, res, next) => {
+  res.locals.currentPath = req.path; // '/' や '/history' が入る
+  next();
+});
+
 // ファイル名 → 日本語表示
 function formatReportName(filename) {
   const match = filename.match(/^news_(\d{4})-(\d{2})-(\d{2})\.html$/);
