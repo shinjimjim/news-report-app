@@ -66,12 +66,6 @@ def generate_html(main_path, archive_path): # この関数では、HTMLレポー
                           + [s for s in bucket.keys() if s not in preferred_sources]
     else:
         ordered_sources = [s for s, _ in all_news]
-    # DBモードなら、bucketに存在するものだけ順序適用
-    # ordered_sources = (
-    #     [s for s in preferred_sources if (use_db and s in bucket)]
-    #     if use_db else
-    #     [s for s, _ in all_news]
-    # )
 
     # HTMLの冒頭テンプレート（ヘッダー）
     html = f"""<!DOCTYPE html>
@@ -128,6 +122,13 @@ def generate_html(main_path, archive_path): # この関数では、HTMLレポー
             text-align: center;
             color: #aaa;
         }}
+        .summary{{ margin:6px 0 2px; font-size:0.95rem; color:#222; }}
+        .keywords{{ font-size:0.85rem; color:#666; }}
+        .memo{{ margin-top:6px; font-size:0.9rem; color:#2b2b2b; background:#f7f9fc; border:1px solid #e6ecf5; padding:8px 10px; border-radius:8px; }}
+        .badge{{ display:inline-block; font-size:0.7rem; padding:2px 6px; border-radius:999px; margin-right:6px; vertical-align:1px; }}
+        .badge-insight{{ background:#e8f5e9; color:#1b5e20; }}
+        .badge-caution{{ background:#fff3e0; color:#e65100; }}
+        .badge-impact{{ background:#e3f2fd; color:#0d47a1; }}
     </style>
 </head>
 <body>
@@ -142,23 +143,38 @@ def generate_html(main_path, archive_path): # この関数では、HTMLレポー
     # --- 本体描画 ---
     # DBモード：bucket[source] は Headline の配列
     if use_db:
-        for source_name in ordered_sources:
-            items = bucket.get(source_name, [])
+        for source_name in ordered_sources: # ソース順で並べる。ordered_sources: 表示したいソース名の順番（固定）
+            items = bucket.get(source_name, []) # bucket: {source_name: [Headline, ...]} の辞書。items: 各ソースに属する記事のリスト
             if not items:
                 continue
-            html += f"<h2>{source_name}</h2>\n<ol>\n"
+            # 見出しブロックの開始
+            html += f"<h2>{source_name}</h2>\n<ol>\n" # <h2>：ソース名（NHKなど）、<ol>：順序付きリスト開始
+            # 記事1件ごとの処理
             for r in items: # r は Headline インスタンス
-                clean_title = remove_leading_number(r.title or "")
-                html += f'  <li><a href="{r.url}" target="_blank" rel="noopener">{clean_title}</a>'
+                clean_title = remove_leading_number(r.title or "") # 見出しに 番号（1速報） がある場合、除去
+                html += f'  <li><a href="{r.url}" target="_blank" rel="noopener">{clean_title}</a>' # リンク付きで表示
                 # 要約
                 if r.summary: # r.summary や r.keywords はDBに保存された情報
-                    html += f'<div class="summary">{r.summary}</div>'
+                    html += f'<div class="summary">{r.summary}</div>' # <div class="summary">... として見出しの下に表示
                 # キーワード（カンマ区切り → #タグ風）
                 if r.keywords:
-                    tags = ' #'.join([k.strip() for k in r.keywords.split(',') if k.strip()]) # キーワードは # をつけてハッシュタグ風に表示
+                    tags = ' #'.join([k.strip() for k in r.keywords.split(',') if k.strip()]) # r.keywords をカンマで分割 → リストに。空白除去し、空文字は除外。#タグ 形式で表示（例：#台風 #災害）
                     if tags:
                         html += f'<div class="keywords">#{tags}</div>'
                 html += "</li>\n"
+                # 独自コメント（あれば表示）
+                if getattr(r, "comment", None):
+                    ctype = (getattr(r, "comment_type", "") or "").lower()
+                    if ctype not in ("insight", "caution", "impact"):
+                        ctype = "insight"
+                    badge = f"badge-{ctype}"
+                    label = {"insight":"示唆","caution":"注意","impact":"影響"}.get(ctype, "メモ") # insight：badge-insight	示唆（中立・気づき）、caution：badge-caution 注意（危険・警告）、impact：badge-impact 影響（社会的に重要）
+                    # HTMLとして出力
+                    html += (
+                        f'<div class="memo"><span class="badge {badge}">{label}</span>' # コメントは <div class="memo"> に表示。バッジは <span class="badge badge-xxx"> 形式で強調
+                        f'{r.comment}</div>'
+                    )
+            # 最後にセクションを閉じる
             html += "</ol>\n"
     else:
 

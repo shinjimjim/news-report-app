@@ -32,6 +32,13 @@ HTML_HEAD = """<!doctype html>
   .summary{margin:6px 0 2px 0;font-size:14px;opacity:.95}
   .keywords{font-size:12px;opacity:.75}
   .source{opacity:.8;font-size:12px}
+  .summary{margin:6px 0 2px 0;font-size:14px;opacity:.95}
+  .keywords{font-size:12px;opacity:.75}
+  .memo{margin-top:6px;font-size:14px;background:#141824;border:1px solid #202437;padding:8px 10px;border-radius:8px}
+  .badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:999px;margin-right:6px;vertical-align:1px}
+  .badge-insight{background:#103b28;color:#8ee6b6}
+  .badge-caution{background:#3d2c12;color:#f6c38b}
+  .badge-impact{background:#10263f;color:#9ecbff}
   </style>
 </head>
 <body><div class="wrap">
@@ -80,17 +87,28 @@ def build_html():
 
     # 各カテゴリのHTMLブロック生成
     for cat in order:
-        parts.append(f"<h2>{cat} <span class='cat'>{len(bucket[cat])}件</span></h2>") # 見出し <h2> にカテゴリ名と件数バッジ。
-        # <ul><li>…</li></ul> で記事リストを作る。
-        parts.append("<ul>")
-        for h in bucket[cat]:
-            parts.append("<li>")
+        parts.append(f"<h2>{cat} <span class='cat'>{len(bucket[cat])}件</span></h2>") # cat はカテゴリ名（例：「政治」「経済」）。{len(bucket[cat])} はそのカテゴリの記事件数。<span class='cat'>…件</span> はCSSで丸いバッジ（背景色付き）にして件数表示。
+        # 記事リストの開始タグ
+        parts.append("<ul>") # 記事はHTMLの箇条書き（<ul>＝unordered list）で表現します。以降、各記事を <li> にして追加していきます。
+        # 各記事のループ処理
+        for h in bucket[cat]: # bucket[cat] は、そのカテゴリに属する Headline オブジェクトのリスト。
+            parts.append("<li>") # 記事ごとに <li> を開き、その中にタイトル・要約・キーワード・コメント・出典を順に追加します。
+            # 記事タイトル（リンク化）
             parts.append(f"<a class='title' href='{h.url}' target='_blank' rel='noopener'>{h.title}</a>") # タイトルは <a> でリンク化。target="_blank" は新規タブ、rel="noopener" はセキュリティ＆パフォーマンス（開いた先から window.opener を使われない）。
             if h.summary: # summary（要約）があれば1行表示。
                 parts.append(f"<div class='summary'>{h.summary}</div>")
             if h.keywords: # keywords は DBで「カンマ区切り」想定 → split(',') → トリム → 空要素除去 → #tag 風に整形して表示。
                 parts.append(f"<div class='keywords'>#{' #'.join([k.strip() for k in h.keywords.split(',') if k.strip()])}</div>")
+            # 独自コメント（あれば）
+            if getattr(h, "comment", None): # comment フィールドに何らかのメモ・注釈がある場合に表示。
+                ctype = (getattr(h, "comment_type", "") or "").lower()
+                if ctype not in ("insight","caution","impact"): # comment_type は "insight", "caution", "impact" のいずれかを想定（なければ insight 扱い）。
+                    ctype = "insight"
+                label = {"insight":"示唆","caution":"注意","impact":"影響"}.get(ctype, "メモ") # label は日本語表示用（例："insight" → 「示唆」）。
+                parts.append(f"<div class='memo'><span class='badge badge-{ctype}'>{label}</span>{h.comment}</div>") # .memo でコメント本文、.badge でラベル（色分けバッジ）をCSS装飾できます。
+            # 出典と日付
             parts.append(f"<div class='source'>{h.source} / {h.date}</div>") # source/date は出典と日付の情報欄。
+            # リストの終了タグ
             parts.append("</li>")
         parts.append("</ul>")
 
